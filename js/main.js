@@ -1,3 +1,18 @@
+//ref https://firsemisphere.blogspot.com/2019/02/javascript-gis-proj4js.html
+proj4.defs([
+  [
+    'EPSG:4326',
+    '+title=WGS84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees'
+  ], [
+    'EPSG:3826',
+    '+title=TWD97 TM2 +proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +units=m +no_defs'
+  ]
+]);
+
+//EPSG
+var EPSG3826 = new proj4.Proj('EPSG:3826'); //TWD97 TM2(121分帶)
+var EPSG4326 = new proj4.Proj('EPSG:4326'); //WGS84
+
 var sidebar = new ol.control.Sidebar({ element: 'sidebar', position: 'right' });
 
 var projection = ol.proj.get('EPSG:3857');
@@ -78,3 +93,35 @@ new ol.layer.Vector({
     features: [positionFeature]
   })
 });
+
+var pointStyle = new ol.style.Style({
+  image: new ol.style.Circle({
+    radius: 2,
+    fill: new ol.style.Fill({
+      color: '#CC99CC'
+    }),
+    stroke: new ol.style.Stroke({
+      color: '#fff',
+      width: 1
+    })
+  })
+});
+
+$.getJSON('raw/201926.json', {}, function(points) {
+  var pointFeatures = [];
+  for(k in points) {
+    var p = proj4(EPSG3826, EPSG4326, [parseFloat(points[k].X), parseFloat(points[k].Y)]);
+    var pointFeature = new ol.Feature({
+      style: pointStyle,
+      geometry: new ol.geom.Point(ol.proj.fromLonLat(p))
+    });
+    pointFeatures.push(pointFeature);
+  }
+  console.log(pointFeatures);
+  var pointLayer = new ol.layer.Vector({
+    map: map,
+    source: new ol.source.Vector({
+      features: pointFeatures
+    })
+  });
+})
