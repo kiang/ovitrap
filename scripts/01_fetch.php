@@ -18,7 +18,7 @@ $n = 50;
 
 while(--$n > 0) {
   $timeBegin = strtotime('last wednesday', $timeEnd);
-  $targetFile = __DIR__ . '/raw/' . date('YW', $timeEnd) . '.json';
+  $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
   if(!file_exists($targetFile)) {
     $strBegin = urlencode(date('Y/m/d', $timeBegin));
     $strEnd = urlencode(date('Y/m/d', $timeEnd));
