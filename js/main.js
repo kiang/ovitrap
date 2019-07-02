@@ -20,7 +20,6 @@ var projectionExtent = projection.getExtent();
 var size = ol.extent.getWidth(projectionExtent) / 256;
 var resolutions = new Array(20);
 var matrixIds = new Array(20);
-var clickedCoordinate, populationLayer, gPopulation;
 for (var z = 0; z < 20; ++z) {
     // generate resolutions and matrixIds arrays for this WMTS
     resolutions[z] = size / Math.pow(2, z);
@@ -28,7 +27,7 @@ for (var z = 0; z < 20; ++z) {
 }
 
 var appView = new ol.View({
-  center: ol.proj.fromLonLat([120.071507, 23.094694]),
+  center: ol.proj.fromLonLat([120.221507, 23.000694]),
   zoom: 14
 });
 
@@ -64,8 +63,8 @@ var geolocation = new ol.Geolocation({
 geolocation.setTracking(true);
 
 geolocation.on('error', function(error) {
-        console.log(error.message);
-      });
+  console.log(error.message);
+});
 
 var positionFeature = new ol.Feature();
 
@@ -94,34 +93,105 @@ new ol.layer.Vector({
   })
 });
 
-var pointStyle = new ol.style.Style({
-  image: new ol.style.Circle({
-    radius: 2,
-    fill: new ol.style.Fill({
-      color: '#CC99CC'
-    }),
-    stroke: new ol.style.Stroke({
-      color: '#fff',
-      width: 1
+var pointColors = ['#ffffff', '#fad3d0', '#faa19e', '#fa605d', '#fa1714', '#cc1714', '#991799'];
+var pointStyles = [];
+for(k in pointColors) {
+  pointStyles.push(new ol.style.Style({
+    image: new ol.style.Circle({
+      radius: 5,
+      fill: new ol.style.Fill({
+        color: pointColors[k]
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#fff',
+        width: 1
+      })
     })
+  }));
+}
+
+var jsonPoints, pointLayer;
+function showPoints(jsonFile) {
+  $('#weekTitle').html(jsonFile);
+  $.getJSON('raw/' + jsonFile + '.json', {}, function(points) {
+    var pointFeatures = [];
+    jsonPoints = points;
+    for(k in jsonPoints) {
+      var p = proj4(EPSG3826, EPSG4326, [parseFloat(points[k].X), parseFloat(points[k].Y)]);
+      var pointFeature = new ol.Feature({
+        key: k,
+        geometry: new ol.geom.Point(ol.proj.fromLonLat(p))
+      });
+      if(jsonPoints[k].AvgEggs > 100) {
+        pointFeature.setStyle(pointStyles[6]);
+      } else if (jsonPoints[k].AvgEggs > 80) {
+        pointFeature.setStyle(pointStyles[5]);
+      } else if (jsonPoints[k].AvgEggs > 60) {
+        pointFeature.setStyle(pointStyles[4]);
+      } else if (jsonPoints[k].AvgEggs > 40) {
+        pointFeature.setStyle(pointStyles[3]);
+      } else if (jsonPoints[k].AvgEggs > 20) {
+        pointFeature.setStyle(pointStyles[2]);
+      } else if (jsonPoints[k].AvgEggs > 0) {
+        pointFeature.setStyle(pointStyles[1]);
+      } else {
+        pointFeature.setStyle(pointStyles[0]);
+      }
+      pointFeatures.push(pointFeature);
+    }
+    pointLayer = new ol.layer.Vector({
+      map: map,
+      source: new ol.source.Vector({
+        features: pointFeatures
+      })
+    });
   })
+}
+
+var jsonFiles = [201830, 201831, 201832, 201833, 201834, 201835, 201836, 201837, 201838, 201839, 201840, 201841, 201842, 201843, 201844, 201845, 201846, 201847, 201848, 201849, 201850, 201851, 201852, 201901, 201902, 201903, 201904, 201905, 201906, 201907, 201908, 201909, 201910, 201911, 201912, 201913, 201914, 201915, 201916, 201917, 201918, 201919, 201920, 201921, 201922, 201923, 201924, 201925, 201926];
+var filesLength = jsonFiles.length;
+var fileKey = filesLength - 1;
+showPoints(jsonFiles[fileKey]);
+
+$('#btnPrevious').click(function() {
+  fileKey -= 1;
+  if(fileKey < 0) {
+    fileKey = 0;
+  }
+  showPoints(jsonFiles[fileKey]);
+  return false;
 });
 
-$.getJSON('raw/201926.json', {}, function(points) {
-  var pointFeatures = [];
-  for(k in points) {
-    var p = proj4(EPSG3826, EPSG4326, [parseFloat(points[k].X), parseFloat(points[k].Y)]);
-    var pointFeature = new ol.Feature({
-      style: pointStyle,
-      geometry: new ol.geom.Point(ol.proj.fromLonLat(p))
-    });
-    pointFeatures.push(pointFeature);
+$('#btnNext').click(function() {
+  fileKey += 1;
+  if(fileKey >= filesLength) {
+    fileKey = filesLength - 1;
   }
-  console.log(pointFeatures);
-  var pointLayer = new ol.layer.Vector({
-    map: map,
-    source: new ol.source.Vector({
-      features: pointFeatures
-    })
+  showPoints(jsonFiles[fileKey]);
+  return false;
+});
+
+var sidebarTitle = document.getElementById('sidebarTitle');
+var content = document.getElementById('sidebarContent');
+var pointClicked;
+
+map.on('singleclick', function(evt) {
+  content.innerHTML = '';
+  pointClicked = false;
+
+  map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+    if(false === pointClicked) {
+      var message = '<table class="table table-dark">';
+      message += '<tbody>';
+      var p = feature.getProperties();
+      sidebarTitle.innerHTML = jsonPoints[p.key].Address;
+      for(k in jsonPoints[p.key]) {
+        message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
+      }
+      message += '</tbody></table>';
+      content.innerHTML = message;
+      pointClicked = true;
+    }
   });
-})
+  sidebar.open('home');
+});
