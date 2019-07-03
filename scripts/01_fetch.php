@@ -85,7 +85,7 @@ if(!empty($response)) {
       ),
       'geometry' => array(
         'type' => 'Point',
-        'coordinates' => array($case['lng'], $case['lat']),
+        'coordinates' => array(floatval($case['lng']), floatval($case['lat'])),
       ),
     );
     $fc['features'][] = $f;

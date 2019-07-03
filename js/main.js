@@ -49,8 +49,34 @@ var baseLayer = new ol.layer.Tile({
     opacity: 0.3
 });
 
+function pointStyleFunction(f, r) {
+  var p = f.getProperties();
+  console.log('hi');
+  return new ol.style.Style({
+    image: new ol.style.RegularShape({
+      radius: 20,
+      points: 3,
+      fill: new ol.style.Fill({
+        color: p.color
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#fff',
+        width: 2
+      })
+    })
+  })
+}
+
+var vectorPoints = new ol.layer.Vector({
+  source: new ol.source.Vector({
+    url: 'raw/case.json',
+    format: new ol.format.GeoJSON()
+  }),
+  style: pointStyleFunction
+});
+
 var map = new ol.Map({
-  layers: [baseLayer],
+  layers: [baseLayer, vectorPoints],
   target: 'map',
   view: appView
 });
@@ -186,9 +212,14 @@ map.on('singleclick', function(evt) {
       var message = '<table class="table table-dark">';
       message += '<tbody>';
       var p = feature.getProperties();
-      sidebarTitle.innerHTML = jsonPoints[p.key].Address;
-      for(k in jsonPoints[p.key]) {
-        message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
+      if(p.key) {
+        sidebarTitle.innerHTML = jsonPoints[p.key].Address;
+        for(k in jsonPoints[p.key]) {
+          message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
+        }
+      } else if(p.sickdate) {
+        sidebarTitle.innerHTML = p.sickdate;
+        message += '<tr><th scope="row">發病日期</th><td>' + p.sickdate + '</td></tr>';        
       }
       message += '</tbody></table>';
       content.innerHTML = message;
