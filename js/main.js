@@ -148,26 +148,28 @@ function showPoints(jsonFile) {
   })
 }
 
-var jsonFiles = [201830, 201831, 201832, 201833, 201834, 201835, 201836, 201837, 201838, 201839, 201840, 201841, 201842, 201843, 201844, 201845, 201846, 201847, 201848, 201849, 201850, 201851, 201852, 201901, 201902, 201903, 201904, 201905, 201906, 201907, 201908, 201909, 201910, 201911, 201912, 201913, 201914, 201915, 201916, 201917, 201918, 201919, 201920, 201921, 201922, 201923, 201924, 201925, 201926];
-var filesLength = jsonFiles.length;
-var fileKey = filesLength - 1;
-showPoints(jsonFiles[fileKey]);
+var jsonFiles, filesLength, fileKey = 0;
+$.getJSON('raw/weekList.json', {}, function(weeks) {
+  jsonFiles = weeks;
+  filesLength = jsonFiles.length;
+  showPoints(jsonFiles[fileKey].ym);
+});
 
 $('#btnPrevious').click(function() {
-  fileKey -= 1;
+  fileKey += 1;
   if(fileKey < 0) {
     fileKey = 0;
   }
-  showPoints(jsonFiles[fileKey]);
+  showPoints(jsonFiles[fileKey].ym);
   return false;
 });
 
 $('#btnNext').click(function() {
-  fileKey += 1;
+  fileKey -= 1;
   if(fileKey >= filesLength) {
     fileKey = filesLength - 1;
   }
-  showPoints(jsonFiles[fileKey]);
+  showPoints(jsonFiles[fileKey].ym);
   return false;
 });
 
