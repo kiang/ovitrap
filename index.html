@@ -31,6 +31,16 @@
     </style>
 </head>
 <body>
+  <div id="fb-root"></div>
+<script>
+(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = 'https://connect.facebook.net/zh_TW/sdk.js#xfbml=1&version=v2.12&appId=1393405437614114&autoLogAppEvents=1';
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script>
     <div id="sidebar" class="sidebar collapsed">
         <!-- Nav tabs -->
         <div class="sidebar-tabs">
@@ -38,6 +48,7 @@
                 <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
                 <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
                 <li><a href="https://github.com/kiang/ovitrap" role="tab" target="_blank"><i class="fa fa-github"></i></a></li>
+                <li><a href="#fb" role="tab"><i class="fa fa-facebook"></i></a></li>
             </ul>
         </div>
 
@@ -52,6 +63,9 @@
                 <div id="weekContent"></div>
                 <a href="#" id="btnPrevious" class="btn btn-primary btn-lg btn-block" role="button" aria-pressed="true">上一週</a>
                 <a href="#" id="btnNext" class="btn btn-primary btn-lg btn-block" role="button" aria-pressed="true">下一週</a>
+            </div>
+            <div class="sidebar-pane" id="fb">
+              <div class="fb-page" data-href="https://www.facebook.com/k.olc.tw/" data-tabs="timeline" data-width="380" data-small-header="false" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true"><blockquote cite="https://www.facebook.com/k.olc.tw/" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/k.olc.tw/">江明宗</a></blockquote></div>
             </div>
         </div>
     </div>
