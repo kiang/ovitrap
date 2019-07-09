@@ -99,8 +99,7 @@ var cunli = new ol.layer.Vector({
   style: function(f) {
     layerYellow.getText().setText(f.get('TOWNNAME') + f.get('VILLNAME'));
     return layerYellow;
-  },
-  map: map
+  }
 });
 
 var map = new ol.Map({
@@ -171,10 +170,10 @@ function appendLeadingZeroes(n){
   return n
 }
 
-var jsonPoints, pointLayer;
+var jsonPoints, pointLayer, dateBegin, dateEnd;
 function showPoints(jsonFile) {
-  var dateBegin = new Date(jsonFiles[fileKey].begin * 1000);
-  var dateEnd = new Date(jsonFiles[fileKey].end * 1000);
+  dateBegin = new Date(jsonFiles[fileKey].begin * 1000);
+  dateEnd = new Date(jsonFiles[fileKey].end * 1000);
   var weekContent = '<table class="table table-dark"><tbody>';
   weekContent += '<tr><th scope="row">週數</th><td>' + jsonFiles[fileKey].ym + '</td></tr>';
   weekContent += '<tr><th scope="row">開始</th><td>' + dateBegin.getFullYear() + '-' + appendLeadingZeroes(dateBegin.getMonth() + 1) + '-' + appendLeadingZeroes(dateBegin.getDate()) + '</td></tr>';
@@ -230,6 +229,7 @@ $('#btnPrevious').click(function() {
     fileKey = filesLength - 1;
   }
   showPoints(jsonFiles[fileKey].ym);
+  updateVector();
   return false;
 });
 
@@ -239,8 +239,27 @@ $('#btnNext').click(function() {
     fileKey = 0;
   }
   showPoints(jsonFiles[fileKey].ym);
+  updateVector();
   return false;
 });
+
+var vectorPointsPool = [];
+function updateVector() {
+  var theSource = vectorPoints.getSource();
+  for(k in vectorPointsPool) {
+    theSource.addFeature(vectorPointsPool[k]);
+  }
+  vectorPointsPool = [];
+  theSource.forEachFeature(function(f) {
+    var fp = f.getProperties();
+    var dParts = fp.sickdate.split('/');
+    var fDate = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+    if(fDate > dateEnd) {
+      vectorPointsPool.push(f.clone());
+      theSource.removeFeature(f);
+    }
+  });
+}
 
 var sidebarTitle = document.getElementById('sidebarTitle');
 var content = document.getElementById('sidebarContent');
