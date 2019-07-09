@@ -239,6 +239,9 @@ map.on('singleclick', function(evt) {
       var message = '<table class="table table-dark">';
       message += '<tbody>';
       var p = feature.getProperties();
+      if(p.VILLCODE) {
+        return false;
+      }
       if(p.key) {
         sidebarTitle.innerHTML = jsonPoints[p.key].Address;
         for(k in jsonPoints[p.key]) {
