@@ -51,7 +51,6 @@ var baseLayer = new ol.layer.Tile({
 
 function pointStyleFunction(f, r) {
   var p = f.getProperties();
-  console.log('hi');
   return new ol.style.Style({
     image: new ol.style.RegularShape({
       radius: 20,
@@ -67,6 +66,22 @@ function pointStyleFunction(f, r) {
   })
 }
 
+var layerYellow = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+      color: 'rgba(0,0,0,1)',
+      width: 1
+  }),
+  fill: new ol.style.Fill({
+      color: 'rgba(255,255,0,0.1)'
+  }),
+  text: new ol.style.Text({
+    font: 'bold 16px "Open Sans", "Arial Unicode MS", "sans-serif"',
+    fill: new ol.style.Fill({
+      color: 'blue'
+    })
+  })
+});
+
 var vectorPoints = new ol.layer.Vector({
   source: new ol.source.Vector({
     url: 'raw/case.json',
@@ -75,8 +90,20 @@ var vectorPoints = new ol.layer.Vector({
   style: pointStyleFunction
 });
 
+var cunli = new ol.layer.Vector({
+  source: new ol.source.Vector({
+    url: 'js/cunli.json',
+    format: new ol.format.GeoJSON()
+  }),
+  style: function(f) {
+    layerYellow.getText().setText(f.get('TOWNNAME') + f.get('VILLNAME'));
+    return layerYellow;
+  },
+  map: map
+});
+
 var map = new ol.Map({
-  layers: [baseLayer, vectorPoints],
+  layers: [baseLayer, vectorPoints, cunli],
   target: 'map',
   view: appView
 });
@@ -219,7 +246,7 @@ map.on('singleclick', function(evt) {
         }
       } else if(p.sickdate) {
         sidebarTitle.innerHTML = p.sickdate;
-        message += '<tr><th scope="row">發病日期</th><td>' + p.sickdate + '</td></tr>';        
+        message += '<tr><th scope="row">發病日期</th><td>' + p.sickdate + '</td></tr>';
       }
       message += '</tbody></table>';
       content.innerHTML = message;
