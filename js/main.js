@@ -14,6 +14,7 @@ var EPSG3826 = new proj4.Proj('EPSG:3826'); //TWD97 TM2(121分帶)
 var EPSG4326 = new proj4.Proj('EPSG:4326'); //WGS84
 
 var sidebar = new ol.control.Sidebar({ element: 'sidebar', position: 'right' });
+var jsonFiles, filesLength, fileKey = 0;
 
 var projection = ol.proj.get('EPSG:3857');
 var projectionExtent = projection.getExtent();
@@ -163,8 +164,23 @@ for(k in pointColors) {
   }));
 }
 
+function appendLeadingZeroes(n){
+  if(n <= 9){
+    return "0" + n;
+  }
+  return n
+}
+
 var jsonPoints, pointLayer;
 function showPoints(jsonFile) {
+  var dateBegin = new Date(jsonFiles[fileKey].begin * 1000);
+  var dateEnd = new Date(jsonFiles[fileKey].end * 1000);
+  var weekContent = '<table class="table table-dark"><tbody>';
+  weekContent += '<tr><th scope="row">週數</th><td>' + jsonFiles[fileKey].ym + '</td></tr>';
+  weekContent += '<tr><th scope="row">開始</th><td>' + dateBegin.getFullYear() + '-' + appendLeadingZeroes(dateBegin.getMonth() + 1) + '-' + appendLeadingZeroes(dateBegin.getDate()) + '</td></tr>';
+  weekContent += '<tr><th scope="row">結束</th><td>' + dateEnd.getFullYear() + '-' + appendLeadingZeroes(dateEnd.getMonth() + 1) + '-' + appendLeadingZeroes(dateEnd.getDate()) + '</td></tr>';
+  weekContent += '</tbody></table>';
+  $('#weekContent').html(weekContent);
   $('#weekTitle').html(jsonFile);
   $.getJSON('raw/' + jsonFile + '.json', {}, function(points) {
     var pointFeatures = [];
@@ -201,7 +217,7 @@ function showPoints(jsonFile) {
   })
 }
 
-var jsonFiles, filesLength, fileKey = 0;
+
 $.getJSON('raw/weekList.json', {}, function(weeks) {
   jsonFiles = weeks;
   filesLength = jsonFiles.length;
@@ -210,8 +226,8 @@ $.getJSON('raw/weekList.json', {}, function(weeks) {
 
 $('#btnPrevious').click(function() {
   fileKey += 1;
-  if(fileKey < 0) {
-    fileKey = 0;
+  if(fileKey >= filesLength) {
+    fileKey = filesLength - 1;
   }
   showPoints(jsonFiles[fileKey].ym);
   return false;
@@ -219,8 +235,8 @@ $('#btnPrevious').click(function() {
 
 $('#btnNext').click(function() {
   fileKey -= 1;
-  if(fileKey >= filesLength) {
-    fileKey = filesLength - 1;
+  if(fileKey < 0) {
+    fileKey = 0;
   }
   showPoints(jsonFiles[fileKey].ym);
   return false;
