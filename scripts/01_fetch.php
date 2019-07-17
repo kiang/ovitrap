@@ -11,13 +11,13 @@ $opts = [
 
 $context = stream_context_create($opts);
 
-$timeEnd = strtotime('last wednesday');
+$timeEnd = strtotime('last monday') - 1;
 $n = 30;
 $weekList = array();
 
 while(--$n > 0) {
-  $timeBegin = strtotime('last wednesday', $timeEnd);
-  $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
+  $timeBegin = strtotime('last monday', $timeEnd);
+  $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeBegin) . '.json';
   if(!file_exists($targetFile)) {
     $strBegin = urlencode(date('Y/m/d', $timeBegin));
     $strEnd = urlencode(date('Y/m/d', $timeEnd));
@@ -32,7 +32,7 @@ while(--$n > 0) {
     'end' => $timeEnd,
   );
 
-  $timeEnd = $timeBegin;
+  $timeEnd = $timeBegin - 1;
 }
 
 file_put_contents(dirname(__DIR__) . '/raw/weekList.json', json_encode($weekList));
