@@ -17,7 +17,7 @@ $weekList = array();
 
 while(--$n > 0) {
   $timeBegin = strtotime('last monday', $timeEnd);
-  $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeBegin) . '.json';
+  $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
   if(!file_exists($targetFile)) {
     $strBegin = urlencode(date('Y/m/d', $timeBegin));
     $strEnd = urlencode(date('Y/m/d', $timeEnd));
