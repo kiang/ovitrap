@@ -11,7 +11,7 @@ $opts = [
 
 $context = stream_context_create($opts);
 
-$timeEnd = strtotime('next monday') - 1;
+$timeEnd = strtotime('last monday') - 1;
 $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
 if(file_exists($targetFile)) {
   unlink($targetFile);
@@ -69,31 +69,34 @@ if(!empty($response)) {
     'features' => array(),
   );
   $responseData = json_decode($response, true);
-  $cases = json_decode($responseData['d'], true);
-  foreach($cases AS $case) {
-    $sickdate = strtotime($case['sickdate']);
-    $diff = $now - $sickdate;
-    $color = '#a9a9a9';
-    if($diff < 604800) {
-      $color = '#ff0000';
-    } else if($diff < 1296000) {
-      $color = '#ff8c00';
-    } else if($diff < 2592000) {
-      $color = '#ffd700';
+  if(!empty($responseData['d'])) {
+    $cases = json_decode($responseData['d'], true);
+    foreach($cases AS $case) {
+      $sickdate = strtotime($case['sickdate']);
+      $diff = $now - $sickdate;
+      $color = '#a9a9a9';
+      if($diff < 604800) {
+        $color = '#ff0000';
+      } else if($diff < 1296000) {
+        $color = '#ff8c00';
+      } else if($diff < 2592000) {
+        $color = '#ffd700';
+      }
+      $f = array(
+        'type' => 'Feature',
+        'properties' => array(
+          'sickdate' => $case['sickdate'],
+          'color' => $color,
+        ),
+        'geometry' => array(
+          'type' => 'Point',
+          'coordinates' => array(floatval($case['lng']), floatval($case['lat'])),
+        ),
+      );
+      $fc['features'][] = $f;
     }
-    $f = array(
-      'type' => 'Feature',
-      'properties' => array(
-        'sickdate' => $case['sickdate'],
-        'color' => $color,
-      ),
-      'geometry' => array(
-        'type' => 'Point',
-        'coordinates' => array(floatval($case['lng']), floatval($case['lat'])),
-      ),
-    );
-    $fc['features'][] = $f;
   }
 }
-
-file_put_contents(dirname(__DIR__) . '/raw/case.json', json_encode($fc));
+if(!empty($fc['features'])) {
+  file_put_contents(dirname(__DIR__) . '/raw/case.json', json_encode($fc));
+}
