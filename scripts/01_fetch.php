@@ -11,13 +11,17 @@ $opts = [
 
 $context = stream_context_create($opts);
 
-$timeEnd = strtotime('last monday') - 1;
+$timeEnd = strtotime('next monday') - 1;
+$targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
+if(file_exists($targetFile)) {
+  unlink($targetFile);
+}
 $n = 30;
 $weekList = array();
 
 while(--$n > 0) {
   $timeBegin = strtotime('last monday', $timeEnd);
-  $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
+
   if(!file_exists($targetFile)) {
     $strBegin = urlencode(date('Y/m/d', $timeBegin));
     $strEnd = urlencode(date('Y/m/d', $timeEnd));
