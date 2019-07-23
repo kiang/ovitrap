@@ -27,6 +27,103 @@ for (var z = 0; z < 20; ++z) {
     matrixIds[z] = z;
 }
 
+var count;
+$.getJSON('raw/count.json', {}, function(c) {
+  count = c;
+})
+
+var styleHide = new ol.style.Style();
+
+var styleBlank = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+      color: 'rgba(37,67,140,0.5)',
+      width: 1
+  }),
+  fill: new ol.style.Fill({
+    color: 'rgba(255,255,255,0.1)'
+  }),
+  text: new ol.style.Text({
+    font: 'bold 16px "Open Sans", "Arial Unicode MS", "sans-serif"',
+    fill: new ol.style.Fill({
+      color: 'blue'
+    })
+  })
+});
+
+var styleHigh = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+      color: 'rgba(37,67,140,0.5)',
+      width: 1
+  }),
+  fill: new ol.style.Fill({
+    color: 'rgba(139,0,255,0.7)'
+  }),
+  text: new ol.style.Text({
+    font: 'bold 16px "Open Sans", "Arial Unicode MS", "sans-serif"',
+    fill: new ol.style.Fill({
+      color: 'blue'
+    })
+  })
+});
+
+var styleNotice = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+      color: 'rgba(139,0,255,0.3)',
+      width: 1
+  }),
+  fill: new ol.style.Fill({
+    color: 'rgba(184,161,207,0.4)'
+  }),
+  text: new ol.style.Text({
+    font: 'bold 16px "Open Sans", "Arial Unicode MS", "sans-serif"',
+    fill: new ol.style.Fill({
+      color: 'blue'
+    })
+  })
+});
+
+var styleYellow = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+      color: 'rgba(139,0,255,0.3)',
+      width: 1
+  }),
+  fill: new ol.style.Fill({
+    color: 'rgba(255,255,0,0.1)'
+  }),
+  text: new ol.style.Text({
+    font: 'bold 16px "Open Sans", "Arial Unicode MS", "sans-serif"',
+    fill: new ol.style.Fill({
+      color: 'blue'
+    })
+  })
+});
+
+var unitKey = '台南市衛生局';
+var getCunliStyle = function(f) {
+  var p = f.getProperties();
+  var code = p.VILLCODE;
+  var town = p.TOWNNAME;
+  var villtext = town + p.VILLNAME;
+  var theStyle = styleBlank.clone();
+  if(count[code] && count[code][count.meta.latest] && count[code][count.meta.latest][unitKey]) {
+    if(count[code][count.meta.latest][unitKey].countPlus > 8 || count[code][count.meta.latest][unitKey].countEggs > 500) {
+      theStyle = styleHigh.clone();
+    } else if(count[code][count.meta.latest][unitKey].countPlus > 4 || count[code][count.meta.latest][unitKey].countEggs > 250) {
+      theStyle = styleNotice.clone();
+    } else if(count[code][count.meta.latest][unitKey].countPlus > 0 || count[code][count.meta.latest][unitKey].countEggs > 0) {
+      theStyle = styleYellow.clone();
+    }
+  }
+  theStyle.getText().setText(villtext);
+  return theStyle;
+}
+
+$('a.btnUnit').click(function() {
+  unitKey = $(this).attr('data-unit');
+  cunli.changed();
+  return false;
+});
+
 var appView = new ol.View({
   center: ol.proj.fromLonLat([120.221507, 23.000694]),
   zoom: 14
@@ -96,10 +193,7 @@ var cunli = new ol.layer.Vector({
     url: 'js/cunli.json',
     format: new ol.format.GeoJSON()
   }),
-  style: function(f) {
-    layerYellow.getText().setText(f.get('TOWNNAME') + f.get('VILLNAME'));
-    return layerYellow;
-  }
+  style: getCunliStyle
 });
 
 var map = new ol.Map({
