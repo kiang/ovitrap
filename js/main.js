@@ -27,9 +27,58 @@ for (var z = 0; z < 20; ++z) {
     matrixIds[z] = z;
 }
 
-var count;
+var map, count, vectorPoints, cunli;
 $.getJSON('raw/count.json', {}, function(c) {
   count = c;
+  vectorPoints = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: 'raw/case.json',
+      format: new ol.format.GeoJSON()
+    }),
+    style: pointStyleFunction
+  });
+
+  cunli = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: 'js/cunli.json',
+      format: new ol.format.GeoJSON()
+    }),
+    style: getCunliStyle
+  });
+  map = new ol.Map({
+    layers: [baseLayer, vectorPoints, cunli],
+    target: 'map',
+    view: appView
+  });
+  map.addControl(sidebar);
+  map.on('singleclick', function(evt) {
+    content.innerHTML = '';
+    pointClicked = false;
+
+    map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+      if(false === pointClicked) {
+        var message = '<table class="table table-dark">';
+        message += '<tbody>';
+        var p = feature.getProperties();
+        if(p.VILLCODE) {
+          return false;
+        }
+        if(p.key) {
+          sidebarTitle.innerHTML = jsonPoints[p.key].Address;
+          for(k in jsonPoints[p.key]) {
+            message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
+          }
+        } else if(p.sickdate) {
+          sidebarTitle.innerHTML = p.sickdate;
+          message += '<tr><th scope="row">發病日期</th><td>' + p.sickdate + '</td></tr>';
+        }
+        message += '</tbody></table>';
+        content.innerHTML = message;
+        pointClicked = true;
+      }
+    });
+    sidebar.open('home');
+  });
 })
 
 var styleHide = new ol.style.Style();
@@ -106,11 +155,12 @@ var getCunliStyle = function(f) {
   var villtext = town + p.VILLNAME;
   var theStyle = styleBlank.clone();
   if(count[code] && count[code][count.meta.latest] && count[code][count.meta.latest][unitKey]) {
-    if(count[code][count.meta.latest][unitKey].countPlus > 8 || count[code][count.meta.latest][unitKey].countEggs > 500) {
+    var plusRate = count[code][count.meta.latest][unitKey].countPlus / count[code][count.meta.latest][unitKey].countTotal;
+    if(plusRate > 0.6 || count[code][count.meta.latest][unitKey].countEggs > 500) {
       theStyle = styleHigh.clone();
-    } else if(count[code][count.meta.latest][unitKey].countPlus > 4 || count[code][count.meta.latest][unitKey].countEggs > 250) {
+    } else if(plusRate > 0.4 || count[code][count.meta.latest][unitKey].countEggs > 250) {
       theStyle = styleNotice.clone();
-    } else if(count[code][count.meta.latest][unitKey].countPlus > 0 || count[code][count.meta.latest][unitKey].countEggs > 0) {
+    } else if(plusRate > 0 || count[code][count.meta.latest][unitKey].countEggs > 0) {
       theStyle = styleYellow.clone();
     }
   }
@@ -179,29 +229,6 @@ var layerYellow = new ol.style.Style({
     })
   })
 });
-
-var vectorPoints = new ol.layer.Vector({
-  source: new ol.source.Vector({
-    url: 'raw/case.json',
-    format: new ol.format.GeoJSON()
-  }),
-  style: pointStyleFunction
-});
-
-var cunli = new ol.layer.Vector({
-  source: new ol.source.Vector({
-    url: 'js/cunli.json',
-    format: new ol.format.GeoJSON()
-  }),
-  style: getCunliStyle
-});
-
-var map = new ol.Map({
-  layers: [baseLayer, vectorPoints, cunli],
-  target: 'map',
-  view: appView
-});
-map.addControl(sidebar);
 
 var geolocation = new ol.Geolocation({
   projection: appView.getProjection()
@@ -358,32 +385,3 @@ function updateVector() {
 var sidebarTitle = document.getElementById('sidebarTitle');
 var content = document.getElementById('sidebarContent');
 var pointClicked;
-
-map.on('singleclick', function(evt) {
-  content.innerHTML = '';
-  pointClicked = false;
-
-  map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-    if(false === pointClicked) {
-      var message = '<table class="table table-dark">';
-      message += '<tbody>';
-      var p = feature.getProperties();
-      if(p.VILLCODE) {
-        return false;
-      }
-      if(p.key) {
-        sidebarTitle.innerHTML = jsonPoints[p.key].Address;
-        for(k in jsonPoints[p.key]) {
-          message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
-        }
-      } else if(p.sickdate) {
-        sidebarTitle.innerHTML = p.sickdate;
-        message += '<tr><th scope="row">發病日期</th><td>' + p.sickdate + '</td></tr>';
-      }
-      message += '</tbody></table>';
-      content.innerHTML = message;
-      pointClicked = true;
-    }
-  });
-  sidebar.open('home');
-});
