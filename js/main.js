@@ -61,9 +61,28 @@ $.getJSON('raw/count.json', {}, function(c) {
         message += '<tbody>';
         var p = feature.getProperties();
         if(p.VILLCODE) {
+          message += '<h1>' + p.TOWNNAME + p.VILLNAME + '</h1>';
+          if(count[p.VILLCODE]) {
+            var keys = Object.keys(count[p.VILLCODE]);
+            keys.sort(function(a,b) {
+              return b-a;
+            });
+            message += '<table class="table table-dark"><thead>';
+            message += '<tr><th>週次</th><th>調查單位</th><th>誘卵桶卵數</th><th>陽性率</th></tr>';
+            message += '</thead><tbody>';
+            for(k in keys) {
+              for(unit in count[p.VILLCODE][keys[k]]) {
+                message += '<tr><th scope="row">' + keys[k] + '</th>';
+                message += '<td>' + unit + '</td>';
+                message += '<td>' + count[p.VILLCODE][keys[k]][unit].countEggs + '</td>';
+                message += '<td>' + Math.round((count[p.VILLCODE][keys[k]][unit].countPlus / count[p.VILLCODE][keys[k]][unit].countTotal * 100)) + '%</td></tr>';
+              }
+            }
+            message += '</tbody></table>';
+          }
+          $('#sidebarCunli').html(message);
           return false;
-        }
-        if(p.key) {
+        } else if(p.key) {
           sidebarTitle.innerHTML = jsonPoints[p.key].Address;
           for(k in jsonPoints[p.key]) {
             message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
