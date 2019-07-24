@@ -173,13 +173,13 @@ var getCunliStyle = function(f) {
   var town = p.TOWNNAME;
   var villtext = town + p.VILLNAME;
   var theStyle = styleBlank.clone();
-  if(count[code] && count[code][count.meta.latest] && count[code][count.meta.latest][unitKey]) {
-    var plusRate = count[code][count.meta.latest][unitKey].countPlus / count[code][count.meta.latest][unitKey].countTotal;
-    if(plusRate > 0.6 || count[code][count.meta.latest][unitKey].countEggs > 500) {
+  if(count[code] && count[code][jsonFiles[fileKey].ym] && count[code][jsonFiles[fileKey].ym][unitKey]) {
+    var plusRate = count[code][jsonFiles[fileKey].ym][unitKey].countPlus / count[code][jsonFiles[fileKey].ym][unitKey].countTotal;
+    if(plusRate > 0.6 || count[code][jsonFiles[fileKey].ym][unitKey].countEggs > 500) {
       theStyle = styleHigh.clone();
-    } else if(plusRate > 0.3 || count[code][count.meta.latest][unitKey].countEggs > 250) {
+    } else if(plusRate > 0.3 || count[code][jsonFiles[fileKey].ym][unitKey].countEggs > 250) {
       theStyle = styleNotice.clone();
-    } else if(plusRate > 0 || count[code][count.meta.latest][unitKey].countEggs > 0) {
+    } else if(plusRate > 0 || count[code][jsonFiles[fileKey].ym][unitKey].countEggs > 0) {
       theStyle = styleYellow.clone();
     }
   }
@@ -370,6 +370,7 @@ $('#btnPrevious').click(function() {
   }
   showPoints(jsonFiles[fileKey].ym);
   updateVector();
+  cunli.changed();
   return false;
 });
 
@@ -380,6 +381,7 @@ $('#btnNext').click(function() {
   }
   showPoints(jsonFiles[fileKey].ym);
   updateVector();
+  cunli.changed();
   return false;
 });
 
