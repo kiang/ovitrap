@@ -10,8 +10,12 @@ $opts = [
 ];
 
 $context = stream_context_create($opts);
+if(date('N') == 1) {
+  $timeEnd = strtotime(date('Y-m-d') . ' 00:00:00') - 1;
+} else {
+  $timeEnd = strtotime('last monday') - 1;
+}
 
-$timeEnd = strtotime('last monday') - 1;
 $targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
 if(file_exists($targetFile)) {
   unlink($targetFile);
