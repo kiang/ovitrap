@@ -46,6 +46,7 @@
         <div class="sidebar-tabs">
             <ul role="tablist">
                 <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                <li><a href="#book" role="tab"><i class="fa fa-book"></i></a></li>
                 <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
                 <li><a href="https://github.com/kiang/ovitrap" role="tab" target="_blank"><i class="fa fa-github"></i></a></li>
                 <li><a href="#fb" role="tab"><i class="fa fa-facebook"></i></a></li>
@@ -59,11 +60,30 @@
               <div id="sidebarContent">請點選地圖中的點</div>
               <div id="sidebarCunli"></div>
             </div>
+            <div class="sidebar-pane" id="book">
+                <h1 class="sidebar-header"><span id="weekTitle">說明</span><span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                <div>
+                    區塊配色說明（里）
+                    <ul>
+                        <li>深紫色： 誘卵桶卵數數量大於 500 或是陽性率大於 60% (8個以上誘卵桶發現蟲卵)</li>
+                        <li>淺紫色： 誘卵桶卵數數量大於 250 或是陽性率大於 40% (4個以上誘卵桶發現蟲卵)</li>
+                        <li>淺黃色： 誘卵桶卵數數量大於 0 (1個以上誘卵桶發現蟲卵)</li>
+                        <li>白色： 誘卵桶卵數數量等於 0 (沒有誘卵桶發現蟲卵，或是沒有設置誘卵桶)</li>
+                    </ul>
+                </div>
+            </div>
             <div class="sidebar-pane" id="settings">
                 <h1 class="sidebar-header"><span id="weekTitle">設定</span><span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                 <div id="weekContent"></div>
                 <a href="#" id="btnPrevious" class="btn btn-primary btn-lg btn-block" role="button" aria-pressed="true">上一週</a>
                 <a href="#" id="btnNext" class="btn btn-primary btn-lg btn-block" role="button" aria-pressed="true">下一週</a>
+                <hr /><a href="#" class="btn btn-primary btn-lg btn-block" id="btn-geolocation">回到目前位置</a>
+                <hr /><div class="form-group">
+                    <label for="formSelectArea">選擇區域</label>
+                    <select class="form-control" id="formSelectArea">
+                        <option value="all">顯示全部</option>
+                    </select>
+                </div>
                 <hr />
                 <a href="#" data-unit="台南市衛生局" class="btn btn-primary btn-lg btn-block btnUnit" role="button" aria-pressed="true">台南市衛生局</a>
                 <a href="#" data-unit="蚊媒病中心_台南" class="btn btn-primary btn-lg btn-block btnUnit" role="button" aria-pressed="true">蚊媒病中心_台南</a>

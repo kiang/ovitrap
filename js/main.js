@@ -27,7 +27,7 @@ for (var z = 0; z < 20; ++z) {
     matrixIds[z] = z;
 }
 
-var map, count, vectorPoints, cunli;
+var map, count, vectorPoints, cunli, selectedArea = 'all';;
 $.getJSON('raw/count.json', {}, function(c) {
   count = c;
   vectorPoints = new ol.layer.Vector({
@@ -98,6 +98,22 @@ $.getJSON('raw/count.json', {}, function(c) {
     });
     sidebar.open('home');
   });
+  $('#formSelectArea').change(function () {
+      selectedArea = $(this).val();
+      var extentOfAllFeatures = ol.extent.createEmpty();
+      cunli.getSource().forEachFeature(function (f) {
+          if (selectedArea === 'all') {
+              f.setStyle(getCunliStyle);
+              ol.extent.extend(extentOfAllFeatures, f.getGeometry().getExtent());
+          } else if (f.get('TOWNNAME') !== selectedArea) {
+              f.setStyle(styleHide);
+          } else {
+              f.setStyle(getCunliStyle);
+              ol.extent.extend(extentOfAllFeatures, f.getGeometry().getExtent());
+          }
+      });
+      map.getView().fit(extentOfAllFeatures);
+  });
 })
 
 var styleHide = new ol.style.Style();
@@ -167,12 +183,17 @@ var styleYellow = new ol.style.Style({
 });
 
 var unitKey = '台南市衛生局';
+var areaList = {};
 var getCunliStyle = function(f) {
   var p = f.getProperties();
   var code = p.VILLCODE;
   var town = p.TOWNNAME;
   var villtext = town + p.VILLNAME;
   var theStyle = styleBlank.clone();
+  if (!areaList[town]) {
+    areaList[town] = town;
+    $('#formSelectArea').append('<option>' + town + '</option>');
+  }
   if(count[code] && count[code][jsonFiles[fileKey].ym] && count[code][jsonFiles[fileKey].ym][unitKey]) {
     var plusRate = count[code][jsonFiles[fileKey].ym][unitKey].countPlus / count[code][jsonFiles[fileKey].ym][unitKey].countTotal;
     if(plusRate > 0.6 || count[code][jsonFiles[fileKey].ym][unitKey].countEggs > 500) {
@@ -284,6 +305,11 @@ new ol.layer.Vector({
   source: new ol.source.Vector({
     features: [positionFeature]
   })
+});
+
+$('#btn-geolocation').click(function () {
+  appView.setCenter(geolocation.getPosition());
+  return false;
 });
 
 var pointColors = ['#ffffff', '#fad3d0', '#faa19e', '#fa605d', '#fa1714', '#cc1714', '#991799'];
