@@ -16,7 +16,7 @@ if(date('N') == 1) {
   $timeEnd = strtotime('last monday') - 1;
 }
 
-$targetFile = dirname(__DIR__) . '/raw/' . date('YW', $timeEnd) . '.json';
+$targetFile = dirname(__DIR__) . '/raw/' . date('oW', $timeEnd) . '.json';
 if(file_exists($targetFile)) {
   unlink($targetFile);
 }
@@ -35,7 +35,7 @@ while(--$n > 0) {
     file_put_contents($targetFile, json_encode(array_merge($data1, $data2)));
   }
   $weekList[] = array(
-    'ym' => date('YW', $timeEnd),
+    'ym' => date('oW', $timeEnd),
     'begin' => $timeBegin,
     'end' => $timeEnd,
   );
