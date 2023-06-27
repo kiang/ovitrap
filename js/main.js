@@ -486,7 +486,7 @@ function updateVector() {
   vectorPointsPool = [];
   theSource.forEachFeature(function (f) {
     var fp = f.getProperties();
-    var dParts = fp.sickdate.split('/');
+    var dParts = fp['發病日'].split('/');
     var fDate = new Date(dParts[0], dParts[1] - 1, dParts[2]);
     if (fDate > dateEnd) {
       vectorPointsPool.push(f.clone());
