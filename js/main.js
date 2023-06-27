@@ -46,7 +46,7 @@ $.getJSON('raw/count.json', {}, function (c) {
     style: getCunliStyle
   });
   map = new ol.Map({
-    layers: [baseLayer, vectorPoints, cunli],
+    layers: [baseLayer, cunli, vectorPoints],
     target: 'map',
     view: appView
   });
@@ -240,9 +240,8 @@ var baseLayer = new ol.layer.Tile({
 function pointStyleFunction(f, r) {
   var p = f.getProperties();
   return new ol.style.Style({
-    image: new ol.style.RegularShape({
-      radius: 20,
-      points: 3,
+    image: new ol.style.Circle({
+      radius: 10,
       fill: new ol.style.Fill({
         color: p.color
       }),
