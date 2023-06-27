@@ -27,16 +27,64 @@ for (var z = 0; z < 20; ++z) {
   matrixIds[z] = z;
 }
 
-var map, count, vectorPoints, cunli, selectedArea = 'all';;
+var cities = ['67000', '64000'], features = [], plist = [
+  '發病日',
+  '通報日',
+  '個案研判日',
+  '血清型',
+  '確定病例數',
+  '居住村里',
+  '居住縣市',
+  '居住鄉鎮',
+  '年齡層',
+  '性別',
+  '感染縣市',
+  '感染鄉鎮',
+];
+var today = new Date();
+for (i in cities) {
+  $.get('https://kiang.github.io/dengue/daily/2023/' + cities[i] + '.csv', [], function (csv) {
+    var lines = $.csv.toObjects(csv);
+    for (j in lines) {
+      if (lines[j]['是否境外移入'] === '否') {
+        var lineP = {}, lonlat = [
+          parseFloat(lines[j]['最小統計區中心點X']),
+          parseFloat(lines[j]['最小統計區中心點Y'])
+        ];
+        for (p in plist) {
+          lineP[plist[p]] = lines[j][plist[p]];
+        }
+        var dParts = lineP['發病日'].split('/');
+        var fDate = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+        var fDays = Math.floor((today.getTime() - fDate.getTime()) / 86400000);
+        if (fDays < 8) {
+          lineP['color'] = '#ff0000';
+        } else if (fDays < 15) {
+          lineP['color'] = '#ff8c00';
+        } else if (fDays < 31) {
+          lineP['color'] = '#ffd700';
+        } else {
+          lineP['color'] = '#a9a9a9';
+        }
+
+        var f = new ol.Feature({
+          geometry: new ol.geom.Point(ol.proj.fromLonLat(lonlat))
+        });
+        f.setProperties(lineP);
+        features.push(f);
+        vectorPoints.getSource().clear();
+        vectorPoints.getSource().addFeatures(features);
+      }
+    }
+  });
+}
+
+var map, count, vectorPoints = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+  style: pointStyleFunction
+}), cunli, selectedArea = 'all';
 $.getJSON('raw/count.json', {}, function (c) {
   count = c;
-  vectorPoints = new ol.layer.Vector({
-    source: new ol.source.Vector({
-      url: 'raw/case.json',
-      format: new ol.format.GeoJSON()
-    }),
-    style: pointStyleFunction
-  });
 
   cunli = new ol.layer.Vector({
     source: new ol.source.Vector({
@@ -81,15 +129,26 @@ $.getJSON('raw/count.json', {}, function (c) {
             message += '</tbody></table>';
           }
           $('#sidebarCunli').html(message);
-          return false;
+          sidebarTitle.innerHTML = p.TOWNNAME + p.VILLNAME;
         } else if (p.key) {
           sidebarTitle.innerHTML = jsonPoints[p.key].Address;
           for (k in jsonPoints[p.key]) {
             message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
           }
-        } else if (p.sickdate) {
-          sidebarTitle.innerHTML = p.sickdate;
-          message += '<tr><th scope="row">發病日期</th><td>' + p.sickdate + '</td></tr>';
+        } else if (p['發病日']) {
+          sidebarTitle.innerHTML = p['發病日'];
+          message += '<tr><th scope="row">發病日</th><td>' + p['發病日'] + '</td></tr>';
+          message += '<tr><th scope="row">通報日</th><td>' + p['通報日'] + '</td></tr>';
+          message += '<tr><th scope="row">個案研判日</th><td>' + p['個案研判日'] + '</td></tr>';
+          message += '<tr><th scope="row">血清型</th><td>' + p['血清型'] + '</td></tr>';
+          message += '<tr><th scope="row">確定病例數</th><td>' + p['確定病例數'] + '</td></tr>';
+          message += '<tr><th scope="row">居住村里</th><td>' + p['居住村里'] + '</td></tr>';
+          message += '<tr><th scope="row">居住縣市</th><td>' + p['居住縣市'] + '</td></tr>';
+          message += '<tr><th scope="row">居住鄉鎮</th><td>' + p['居住鄉鎮'] + '</td></tr>';
+          message += '<tr><th scope="row">年齡層</th><td>' + p['年齡層'] + '</td></tr>';
+          message += '<tr><th scope="row">性別</th><td>' + p['性別'] + '</td></tr>';
+          message += '<tr><th scope="row">感染縣市</th><td>' + p['感染縣市'] + '</td></tr>';
+          message += '<tr><th scope="row">感染鄉鎮</th><td>' + p['感染鄉鎮'] + '</td></tr>';
         }
         message += '</tbody></table>';
         content.innerHTML = message;

@@ -52,6 +52,8 @@ $postData = array(
     'endDate' => date('Y/m/d'),
 );
 
+exit();
+
 // Setup cURL
 $ch = curl_init('https://cdcdengue.azurewebsites.net/DengueData.asmx/GetDengueLocation');
 curl_setopt_array($ch, array(
