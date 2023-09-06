@@ -27,7 +27,7 @@ for (var z = 0; z < 20; ++z) {
   matrixIds[z] = z;
 }
 
-var cities = ['67000', '64000'], features = [], plist = [
+var cities = [], features = [], plist = [
   '發病日',
   '通報日',
   '個案研判日',
