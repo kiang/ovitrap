@@ -43,7 +43,7 @@ var cities = [], features = [], plist = [
 ];
 var today = new Date();
 for (i in cities) {
-  $.get('https://kiang.github.io/dengue/daily/2023/' + cities[i] + '.csv', [], function (csv) {
+  $.get('https://kiang.github.io/dengue/daily/2024/' + cities[i] + '.csv', [], function (csv) {
     var lines = $.csv.toObjects(csv);
     for (j in lines) {
       if (lines[j]['是否境外移入'] === '否') {
@@ -83,7 +83,7 @@ var map, count, vectorPoints = new ol.layer.Vector({
   source: new ol.source.Vector(),
   style: pointStyleFunction
 }), cunli, selectedArea = 'all';
-$.getJSON('raw/count.json', {}, function (c) {
+$.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {}, function (c) {
   count = c;
 
   cunli = new ol.layer.Vector({
@@ -402,6 +402,7 @@ var jsonPoints, pointLayer, dateBegin, dateEnd;
 function showPoints(jsonFile) {
   dateBegin = new Date(jsonFiles[fileKey].begin * 1000);
   dateEnd = new Date(jsonFiles[fileKey].end * 1000);
+  var y = jsonFile.substr(0, 4);
   var weekContent = '<table class="table table-dark"><tbody>';
   weekContent += '<tr><th scope="row">週數</th><td>' + jsonFiles[fileKey].ym + '</td></tr>';
   weekContent += '<tr><th scope="row">開始</th><td>' + dateBegin.getFullYear() + '-' + appendLeadingZeroes(dateBegin.getMonth() + 1) + '-' + appendLeadingZeroes(dateBegin.getDate()) + '</td></tr>';
@@ -409,7 +410,7 @@ function showPoints(jsonFile) {
   weekContent += '</tbody></table>';
   $('#weekContent').html(weekContent);
   $('#weekTitle').html(jsonFile);
-  $.getJSON('raw/' + jsonFile + '.json', {}, function (points) {
+  $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/points/' + y + '/' + jsonFile + '.json', {}, function (points) {
     var pointFeatures = [];
     jsonPoints = points;
     for (k in jsonPoints) {
@@ -449,7 +450,7 @@ function showPoints(jsonFile) {
 }
 
 
-$.getJSON('raw/weekList.json', {}, function (weeks) {
+$.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/weekList.json', {}, function (weeks) {
   jsonFiles = weeks;
   filesLength = jsonFiles.length;
   showPoints(jsonFiles[fileKey].ym);
