@@ -178,7 +178,7 @@ $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {
               }
               
               // Create table content first
-              var tableContent = '<table class="table table-dark"><thead><tr><th>日期</th><th>誘卵桶卵數</th></tr></thead><tbody>';
+              var tableContent = '<table class="table table-dark"><thead><tr><th>日期</th><th>誘卵桶卵數</th><th>陽性率</th></tr></thead><tbody>';
               
               // Reverse the order for the table only
               var reversedKeys = keys.slice().reverse();
@@ -188,7 +188,15 @@ $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {
               for (var i = 0; i < reversedKeys.length; i++) {
                 var k = reversedKeys[i];
                 for (unit in count[p.VILLCODE][k]) {
-                  tableContent += '<tr><td>' + reversedWeeks[i] + '</td><td>' + count[p.VILLCODE][k][unit].countEggs + '</td></tr>';
+                  // Calculate positive rate (陽性率)
+                  var positiveRate = 0;
+                  if (count[p.VILLCODE][k][unit].countTotal > 0) {
+                    positiveRate = (count[p.VILLCODE][k][unit].countPlus / count[p.VILLCODE][k][unit].countTotal * 100).toFixed(1);
+                  }
+                  
+                  tableContent += '<tr><td>' + reversedWeeks[i] + '</td><td>' + 
+                    count[p.VILLCODE][k][unit].countEggs + '</td><td>' + 
+                    positiveRate + '%</td></tr>';
                 }
               }
               tableContent += '</tbody></table>';
@@ -242,6 +250,8 @@ $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {
           }
           sidebarTitle.innerHTML = p.TOWNNAME + p.VILLNAME;
         } else if (p.key) {
+          message += '<h1>' + jsonPoints[p.key].Address + '</h1>';
+          message += '<table class="table table-dark"><tbody>';
           sidebarTitle.innerHTML = jsonPoints[p.key].Address;
           for (k in jsonPoints[p.key]) {
             message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
@@ -250,6 +260,7 @@ $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {
           content.innerHTML = message;
         } else if (p['發病日']) {
           sidebarTitle.innerHTML = p['發病日'];
+          message += '<table class="table table-dark"><tbody>';
           message += '<tr><th scope="row">發病日</th><td>' + p['發病日'] + '</td></tr>';
           message += '<tr><th scope="row">通報日</th><td>' + p['通報日'] + '</td></tr>';
           message += '<tr><th scope="row">個案研判日</th><td>' + p['個案研判日'] + '</td></tr>';
