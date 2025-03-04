@@ -248,7 +248,7 @@ var getCunliStyle = function (f) {
   var code = p.VILLCODE;
   var town = p.TOWNNAME;
   var villtext = town + p.VILLNAME;
-  var theStyle = styleBlank.clone();
+  var theStyle = count[code] ? styleBlank.clone() : styleHide.clone();
   if (!areaList[town]) {
     areaList[town] = town;
     $('#formSelectArea').append('<option>' + town + '</option>');
@@ -263,7 +263,9 @@ var getCunliStyle = function (f) {
       theStyle = styleYellow.clone();
     }
   }
-  theStyle.getText().setText(villtext);
+  if (theStyle.getText()) {
+    theStyle.getText().setText(villtext);
+  }
   return theStyle;
 }
 
