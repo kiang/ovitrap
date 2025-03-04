@@ -99,42 +99,155 @@ $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {
     view: appView
   });
   map.addControl(sidebar);
+
+  // Add a variable to track the currently highlighted feature
+  var highlightedFeature = null;
+
+  // Create a highlight style
+  var highlightStyle = new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'rgba(255, 0, 0, 1)',
+      width: 3
+    }),
+    fill: new ol.style.Fill({
+      color: 'rgba(255, 0, 0, 0.3)'
+    }),
+    text: new ol.style.Text({
+      font: 'bold 16px "Open Sans", "Arial Unicode MS", "sans-serif"',
+      fill: new ol.style.Fill({
+        color: 'black'
+      }),
+      stroke: new ol.style.Stroke({
+        color: 'white',
+        width: 2
+      })
+    })
+  });
+
   map.on('singleclick', function (evt) {
     content.innerHTML = '';
     pointClicked = false;
+    
+    // Reset previously highlighted feature if exists
+    if (highlightedFeature) {
+      highlightedFeature.setStyle(getCunliStyle(highlightedFeature));
+      highlightedFeature = null;
+    }
 
     map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
       if (false === pointClicked) {
-        var message = '<table class="table table-dark">';
-        message += '<tbody>';
+        var message = '<canvas id="lineChartCanvas"></canvas>';
         var p = feature.getProperties();
+        
+        // Highlight the clicked feature if it's from the cunli layer
+        if (p.VILLCODE && layer === cunli) {
+          highlightedFeature = feature;
+          var originalStyle = getCunliStyle(feature);
+          var highlightedStyleClone = highlightStyle.clone();
+          
+          // Preserve the text from the original style
+          if (originalStyle.getText() && originalStyle.getText().getText()) {
+            highlightedStyleClone.getText().setText(originalStyle.getText().getText());
+          }
+          
+          feature.setStyle(highlightedStyleClone);
+        }
+        
         if (p.VILLCODE) {
           message += '<h1>' + p.TOWNNAME + p.VILLNAME + '</h1>';
           if (count[p.VILLCODE]) {
-            var keys = Object.keys(count[p.VILLCODE]);
-            keys.sort(function (a, b) {
-              return b - a;
-            });
-            message += '<table class="table table-dark"><thead>';
-            message += '<tr><th>週次</th><th>調查單位</th><th>誘卵桶卵數</th><th>陽性率</th></tr>';
-            message += '</thead><tbody>';
-            for (k in keys) {
-              for (unit in count[p.VILLCODE][keys[k]]) {
-                message += '<tr><th scope="row">' + keys[k] + '</th>';
-                message += '<td>' + unit + '</td>';
-                message += '<td>' + count[p.VILLCODE][keys[k]][unit].countEggs + '</td>';
-                message += '<td>' + Math.round((count[p.VILLCODE][keys[k]][unit].countPlus / count[p.VILLCODE][keys[k]][unit].countTotal * 100)) + '%</td></tr>';
+            content.innerHTML = message;
+            setTimeout(function() {
+              var keys = Object.keys(count[p.VILLCODE]);
+              keys.sort(function (a, b) {
+                return a - b;
+              });
+              var weeks = [];
+              var eggCounts = [];
+              for (k in keys) {
+                for (unit in count[p.VILLCODE][keys[k]]) {
+                  var year = parseInt(keys[k].substring(0, 4));
+                  var weekNumber = parseInt(keys[k].substring(4));
+                  var endDate = new Date(year, 0, (1 + (weekNumber - 1) * 7));
+                  while (endDate.getDay() !== 0) {
+                    endDate.setDate(endDate.getDate() + 1);
+                  }
+                  weeks.push(endDate.getFullYear() + '-' + (endDate.getMonth() + 1) + '-' + endDate.getDate());
+                  eggCounts.push(count[p.VILLCODE][keys[k]][unit].countEggs);
+                }
               }
-            }
-            message += '</tbody></table>';
+              
+              // Create table content first
+              var tableContent = '<table class="table table-dark"><thead><tr><th>日期</th><th>誘卵桶卵數</th></tr></thead><tbody>';
+              
+              // Reverse the order for the table only
+              var reversedKeys = keys.slice().reverse();
+              var reversedWeeks = weeks.slice().reverse();
+              var reversedEggCounts = eggCounts.slice().reverse();
+              
+              for (var i = 0; i < reversedKeys.length; i++) {
+                var k = reversedKeys[i];
+                for (unit in count[p.VILLCODE][k]) {
+                  tableContent += '<tr><td>' + reversedWeeks[i] + '</td><td>' + count[p.VILLCODE][k][unit].countEggs + '</td></tr>';
+                }
+              }
+              tableContent += '</tbody></table>';
+              
+              // Update the DOM with both the canvas and table
+              var fullContent = '<canvas id="lineChartCanvas"></canvas><h1>' + p.TOWNNAME + p.VILLNAME + '</h1>' + tableContent;
+              content.innerHTML = fullContent;
+              
+              // Now create the chart after the canvas is in the DOM
+              try {
+                var canvas = document.getElementById('lineChartCanvas');
+                if (canvas) {
+                  var ctx = canvas.getContext('2d');
+                  new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                      labels: weeks,
+                      datasets: [{
+                        label: '誘卵桶卵數',
+                        data: eggCounts,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      scales: {
+                        x: {
+                          display: true,
+                          title: {
+                            display: true,
+                            text: '日期'
+                          }
+                        },
+                        y: {
+                          display: true,
+                          title: {
+                            display: true,
+                            text: '誘卵桶卵數'
+                          }
+                        }
+                      }
+                    }
+                  });
+                }
+              } catch (e) {
+                console.error("Error creating chart:", e);
+              }
+            }, 100);
           }
-          $('#sidebarCunli').html(message);
           sidebarTitle.innerHTML = p.TOWNNAME + p.VILLNAME;
         } else if (p.key) {
           sidebarTitle.innerHTML = jsonPoints[p.key].Address;
           for (k in jsonPoints[p.key]) {
             message += '<tr><th scope="row">' + k + '</th><td>' + jsonPoints[p.key][k] + '</td></tr>';
           }
+          message += '</tbody></table>';
+          content.innerHTML = message;
         } else if (p['發病日']) {
           sidebarTitle.innerHTML = p['發病日'];
           message += '<tr><th scope="row">發病日</th><td>' + p['發病日'] + '</td></tr>';
@@ -149,9 +262,9 @@ $.getJSON('https://kiang.github.io/tainan-ovitrap.nmbdcrc.tw/json/count.json', {
           message += '<tr><th scope="row">性別</th><td>' + p['性別'] + '</td></tr>';
           message += '<tr><th scope="row">感染縣市</th><td>' + p['感染縣市'] + '</td></tr>';
           message += '<tr><th scope="row">感染鄉鎮</th><td>' + p['感染鄉鎮'] + '</td></tr>';
+          message += '</tbody></table>';
+          content.innerHTML = message;
         }
-        message += '</tbody></table>';
-        content.innerHTML = message;
         pointClicked = true;
       }
     });
